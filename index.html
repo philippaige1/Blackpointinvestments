@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlackPoint Capital</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/lightweight-chart@3.8.0/dist/lightweight-charts.standalone.production.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <style>
+        body { background: #0a0e17; color: white; min-height: 100vh; font-family: 'Segoe UI', sans-serif; }
+        .chart { height: 280px; background: #1e293b; border-radius: 1rem; }
+    </style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login" class="flex items-center justify-center min-h-screen">
+    <div class="bg-slate-900 p-12 rounded-3xl shadow-2xl w-full max-w-md border border-slate-800">
+        <h1 class="text-5xl font-bold text-center mb-10 text-yellow-500">BlackPoint Capital</h1>
+        <input type="text" id="user" placeholder="Username" class="w-full p-5 mb-5 rounded-xl bg-slate-800 text-lg">
+        <input type="password" id="pass" placeholder="Password" class="w-full p-5 mb-8 rounded-xl bg-slate-800 text-lg">
+        <button onclick="login()" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-5 rounded-xl text-xl transition">
+            Login to Dashboard
+        </button>
+    </div>
+</div>
+
+<!-- Dashboard -->
+<div id="dashboard" class="hidden min-h-screen">
+    <div class="bg-slate-900/80 backdrop-blur p-6 border-b border-slate-800">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <h1 class="text-3xl font-bold">Welcome back, Mr Phillip</h1>
+            <button onclick="logout()" class="text-red-400 hover:text-red-300 text-lg">Logout</button>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 mt-10">
+        <!-- Balance Card -->
+        <div class="bg-gradient-to-r from-yellow-600 to-amber-500 rounded-3xl p-10 text-center shadow-2xl">
+            <p class="text-2xl opacity-90">Total Portfolio Value</p>
+            <h2 id="balance" class="text-7xl font-bold mt-4">$50,000.00</h2>
+            <p class="mt-4 text-lg">Available · Ready for trading</p>
+        </div>
+
+        <!-- Bitcoin Section with Chart -->
+        <div class="bg-slate-800 rounded-3xl p-8 mt-10 shadow-xl">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center gap-5">
+                    <div class="text-6xl">Bitcoin</div>
+                    <div>
+                        <h3 class="text-3xl font-bold">Bitcoin</h3>
+                        <p id="btcPrice" class="text-4xl font-bold text-yellow-400">$--,---</p>
+                    </div>
+                </div>
+                <span id="btcChange" class="text-3xl font-bold"></span>
+            </div>
+            <div id="btcChart" class="chart"></div>
+        </div>
+
+        <!-- Deposit & Withdraw Buttons -->
+        <div class="grid grid-cols-2 gap-8 max-w-2xl mx-auto mt-12">
+            <button onclick="alert('Deposit feature coming soon')" class="bg-green-600 hover:bg-green-700 py-10 rounded-3xl text-3xl font-bold shadow-xl transition">
+                <i class="fas fa-plus mr-4"></i>Deposit
+            </button>
+            <button onclick="showWithdraw()" class="bg-blue-600 hover:bg-blue-700 py-10 rounded-3xl text-3xl font-bold shadow-xl transition">
+                <i class="fas fa-arrow-down mr-4"></i>Withdraw
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Withdraw Modal -->
+<div id="withdrawModal" class="hidden fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center p-6 z-50">
+    <div class="bg-slate-900 rounded-3xl p-10 w-full max-w-lg shadow-2xl border border-slate-700">
+        <h2 class="text-4xl font-bold text-center mb-8">Withdraw Funds</h2>
+        <div class="space-y-6">
+            <div>
+                <label class="text-lg opacity-80">Amount (USD)</label>
+                <input type="number" id="amount" placeholder="Minimum $5,000" class="w-full p-5 rounded-xl bg-slate-800 text-2xl mt-2">
+            </div>
+            <div class="flex gap-4">
+                <button onclick="hideWithdraw()" class="flex-1 bg-gray-700 hover:bg-gray-600 py-5 rounded-xl font-bold text-xl">Cancel</button>
+                <button onclick="processWithdraw()" class="flex-1 bg-gradient-to-r from-yellow-500 to-amber-500 text-black py-5 rounded-xl font-bold text-xl">Confirm Withdrawal</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Success Screen with Confetti -->
+<div id="success" class="hidden fixed inset-0 bg-black bg-opacity-90 flex items-center justify-center z-50">
+    <div class="bg-gradient-to-br from-green-600 to-emerald-700 rounded-3xl p-16 text-center shadow-2xl">
+        <i class="fas fa-check-circle text-9xl mb-8"></i>
+        <h2 class="text-5xl font-bold mb-4">Withdrawal Submitted!</h2>
+        <p class="text-2xl">Your request is being processed</p>
+        <p class="mt-4 text-lg opacity-90">Estimated arrival: 30–60 minutes</p>
+        <button onclick="document.getElementById('success').classList.add('hidden')" class="mt-10 bg-white text-green-700 px-12 py-5 rounded-xl text-xl font-bold">Done</button>
+    </div>
+</div>
+
+<script>
+let balance = 50000.00;
+
+// Login
+function login() {
+    if (document.getElementById('user').value === 'Phillip27' && document.getElementById('pass').value === 'Trader37') {
+        document.getElementById('login').classList.add('hidden');
+        document.getElementById('dashboard').classList.remove('hidden');
+        loadData();
+        updateBalance();
+    } else alert('Incorrect username or password');
+}
+
+function logout() {
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('login').classList.remove('hidden');
+    document.getElementById('user').value = '';
+    document.getElementById('pass').value = '';
+}
+
+function updateBalance() {
+    document.getElementById('balance').textContent = '$' + balance.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+}
+
+function showWithdraw() { document.getElementById('withdrawModal').classList.remove('hidden'); }
+function hideWithdraw() { document.getElementById('withdrawModal').classList.add('hidden'); }
+
+function processWithdraw() {
+    const amt = parseFloat(document.getElementById('amount').value);
+    if (!amt || amt < 5000) return alert('Minimum withdrawal is $5,000');
+    if (amt > balance) return alert('Insufficient funds');
+    
+    balance -= amt;
+    updateBalance();
+    hideWithdraw();
+    document.getElementById('success').classList.remove('hidden');
+    confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
+}
+
+// Load live Bitcoin price + chart
+async function loadData() {
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=usd&include_24hr_change=true');
+    const data = await res.json();
+    document.getElementById('btcPrice').textContent = '$' + data.bitcoin.usd.toLocaleString();
+    const change = data.bitcoin.usd_24h_change.toFixed(2);
+    document.getElementById('btcChange').textContent = (change > 0 ? '+' : '') + change + '%';
+    document.getElementById('btcChange').className = change > 0 ? 'text-green-400' : 'text-red-400';
+
+    const chart = LightweightCharts.createChart(document.getElementById('btcChart'), {
+        width: document.getElementById('btcChart').clientWidth, height: 280,
+        layout: { backgroundColor: '#1e293b', textColor: '#ddd' },
+        grid: { vertLines: { color: '#334155' }, horzLines: { color: '#334155' }}
+    });
+    const line = chart.addLineSeries({ color: '#facc15', lineWidth: 3 });
+    const fakeData = Array.from({length: 60}, (_, i) => ({
+        time: Date.now()/1000 - (60-i)*3600,
+        value: data.bitcoin.usd * (0.92 + Math.random()*0.16)
+    }));
+    line.setData(fakeData);
+}
+</script>
+
+</body>
+</html>
